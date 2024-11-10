@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imvanz Curhat</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=lelcDpu5"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #container {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            color: #ff6f91;
+            margin-bottom: 20px;
+        }
+
+        #welcomeForm {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .inputGroup {
+            margin: 10px 0;
+            width: 100%;
+        }
+
+        .inputGroup label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .inputGroup input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
+
+        .btn-start {
+            background-color: #ff6f91;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn-start:hover {
+            background-color: #ff5a7d;
+        }
+
+        #inputArea {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border-radius: 30px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            width: 100%;
+            max-width: 500px;
+            display: none;
+            flex-wrap: nowrap;
+        }
+
+        #inputField {
+            border: none;
+            outline: none;
+            font-size: 1em;
+            padding: 10px;
+            flex: 1;
+            color: #555;
+            border-radius: 30px;
+        }
+
+        .btn-mic, .btn-send {
+            background-color: #ff6f91;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5em;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+
+        .btn-mic:hover, .btn-send:hover {
+            background-color: #ff5a7d;
+        }
+
+        #chatContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .message {
+            font-size: 1em;
+            padding: 10px 15px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #333;
+            max-width: 75%;
+        }
+
+        .message.ai {
+            background-color: #e3f2fd;
+            align-self: flex-start;
+        }
+
+        .message.user {
+            background-color: #ff6f91;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .profile-icon {
+            width: 30px;
+            height: 30px;
+            background: url('https://cdn-icons-png.flaticon.com/512/4712/4712106.png') no-repeat center;
+            background-size: cover;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.4em;
+                margin-bottom: 15px;
+            }
+
+            .btn-start, #inputArea, #welcomeForm, .message {
+                max-width: 100%;
+            }
+
+            .inputGroup input, .btn-start {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+
+            .btn-mic, .btn-send {
+                font-size: 1.2em;
+                padding: 8px;
+            }
+
+            .message {
+                font-size: 0.9em;
+                padding: 8px 10px;
+            }
+
+            #inputField {
+                font-size: 0.9em;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Selamat Datang di Imvanz Curhat</h1>
+
+        <div id="welcomeForm">
+            <div class="inputGroup">
+                <label for="nickname">Kamu mau dipanggil siapa, kak?</label>
+                <input type="text" id="nickname" placeholder="Masukkan nama panggilan...">
+            </div>
+            <div class="inputGroup">
+                <label for="topic">Kamu mau membahas tentang apa?</label>
+                <input type="text" id="topic" placeholder="Masukkan topik pembahasan...">
+            </div>
+            <button class="btn-start" id="startChat">Mulai Curhat</button>
+        </div>
+
+        <div id="chatContainer"></div>
+
+        <div id="inputArea">
+            <input type="text" id="inputField" placeholder="Ketik pesan di sini...">
+            <button class="btn-send" id="sendButton">📤</button>
+            <button class="btn-mic" id="listenButton">🎤</button>
+        </div>
+    </div>
+
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        document.getElementById('startChat').addEventListener('click', function() {
+            var nickname = document.getElementById('nickname').value;
+            var topic = document.getElementById('topic').value;
+
+            if (nickname && topic) {
+                socket.emit('initialize_chat', { nickname: nickname, topic: topic });
+                document.getElementById('welcomeForm').style.display = 'none';
+                document.getElementById('inputArea').style.display = 'flex';
+            } else {
+                alert("Harap isi semua data yang diperlukan.");
+            }
+        });
+
+        document.getElementById('inputField').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        document.getElementById('sendButton').addEventListener('click', function() {
+            sendMessage();
+        });
+
+        function sendMessage() {
+            const message = document.getElementById('inputField').value;
+            if (message.trim()) {
+                displayChatMessage(message, 'user');
+                socket.emit('user_message', { message: message });
+                document.getElementById('inputField').value = '';
+            }
+        }
+
+        document.getElementById('listenButton').addEventListener('click', function() {
+            socket.emit('get_ai_response');
+        });
+
+        socket.on('ai_response', function(data) {
+            displayChatMessage(data, 'ai');
+            responsiveVoice.speak(data, "Indonesian Female");
+        });
+
+        function displayChatMessage(message, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender);
+            if (sender === 'ai') {
+                const profileIcon = document.createElement('div');
+                profileIcon.classList.add('profile-icon');
+                messageElement.appendChild(profileIcon);
+            }
+            const messageText = document.createElement('span');
+            messageText.innerText = message;
+            messageElement.appendChild(messageText);
+            document.getElementById('chatContainer').appendChild(messageElement);
+            messageElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
